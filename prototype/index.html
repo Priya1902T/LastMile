@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Interview Prep Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+tailwind.config={theme:{extend:{fontFamily:{sans:['Inter','system-ui','sans-serif'],serif:['"Instrument Serif"','Georgia','serif']},colors:{ink:'#1E1B3A',sub:'#6B6890',mute:'#9A98B8',vio:'#7C6CF0',vio2:'#6A59E0'}}}}
+</script>
+<style>
+:root{--ink:#1E1B3A;--sub:#6B6890}
+html,body{height:100%}
+body{font-family:Inter,system-ui,sans-serif;color:var(--ink);background:linear-gradient(180deg,#F4F1FF 0%,#E6E4FF 55%,#D9E4FF 100%);background-attachment:fixed;padding-top:env(safe-area-inset-top,0px)}
+.glass{background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.7);box-shadow:0 10px 40px rgba(124,108,240,.15)}
+.blob{position:fixed;border-radius:50%;filter:blur(70px);z-index:0;pointer-events:none;animation:drift 20s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate(30px,40px)}}
+.scr{display:none}.scr.on{display:block;animation:in .25s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(12px)}}
+.chip{transition:transform .12s,background .12s}.chip:active{transform:scale(.97)}
+.chip.sel{background:#7C6CF0;color:#fff;border-color:#7C6CF0}
+button:focus-visible,summary:focus-visible,textarea:focus-visible,input:focus-visible{outline:2px solid #7C6CF0;outline-offset:2px}
+.cb{appearance:none;width:24px;height:24px;border-radius:50%;border:1.5px solid #B9B3F5;background:#fff;display:grid;place-items:center;flex:none;cursor:pointer;transition:transform .15s}
+.cb:checked{background:#7C6CF0;border-color:#7C6CF0;transform:scale(1.08)}
+.cb:checked::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.done{opacity:.5}.done .tt{text-decoration:line-through}
+details>summary{list-style:none;cursor:pointer}details>summary::-webkit-details-marker{display:none}
+details[open] .chev{transform:rotate(90deg)}.chev{transition:transform .2s}
+#orbwrap{width:220px;height:220px;position:relative}
+.cssorb{position:absolute;inset:10px;border-radius:50%;background:conic-gradient(from 0deg,#CFC4FF,#BFD9FF,#FFC9DC,#BDF2E4,#CFC4FF);filter:blur(1px);animation:spin 8s linear infinite;box-shadow:0 30px 60px rgba(124,108,240,.35)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.stat{transition:opacity .4s}
+@media (prefers-reduced-motion:reduce){.blob,.scr.on,.cssorb{animation:none}}
+</style>
+</head>
+<body class="font-sans antialiased">
+<div class="blob" style="width:340px;height:340px;background:#D8CCFF;top:-80px;right:-100px"></div>
+<div class="blob" style="width:300px;height:300px;background:#CFE0FF;bottom:60px;left:-120px"></div>
+<div class="blob" style="width:200px;height:200px;background:#FDE3DC;top:30px;left:-60px;opacity:.7"></div>
+
+<main class="relative z-10 mx-auto w-full max-w-[430px] min-h-screen px-5 pb-32 pt-8">
+
+  <!-- 1 HOME -->
+  <section id="s-home" class="scr on">
+    <div class="glass rounded-3xl p-6 mt-6">
+      <p class="text-[11px] uppercase tracking-[.12em] text-mute">Turn your last hours into a plan</p>
+      <h1 class="font-serif text-[40px] leading-[1.1] mt-5">When is your <span class="text-vio">interview?</span></h1>
+      <p class="text-sub text-[15px] mt-3">Answer a few quick questions and get exactly what to prepare, and what to skip.</p>
+      <div class="flex flex-wrap gap-2 mt-6">
+        <button class="chip glass rounded-full h-10 px-4 text-[13px] font-medium" onclick="pickWhen('Today')">Today</button>
+        <button class="chip glass rounded-full h-10 px-4 text-[13px] font-medium" onclick="pickWhen('Tomorrow')">Tomorrow</button>
+        <button class="chip glass rounded-full h-10 px-4 text-[13px] font-medium" onclick="pickWhen('This week')">This week</button>
+      </div>
+    </div>
+    <div class="glass rounded-full h-14 mt-6 flex items-center pl-5 pr-2 gap-3">
+      <span class="text-vio text-xl">+</span>
+      <span class="text-mute text-[14px] flex-1">Ask anything about your interview…</span>
+      <button class="w-10 h-10 rounded-full bg-vio text-white grid place-items-center" aria-label="Start" onclick="pickWhen('Tomorrow')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- 2 UPLOAD -->
+  <section id="s-upload" class="scr">
+    <h2 class="font-serif text-[34px] leading-[1.1] mt-6">Share what you have</h2>
+    <p class="text-sub text-[15px] mt-2">Both are optional. The more you add, the more specific your plan.</p>
+    <label class="glass rounded-3xl p-5 mt-5 block cursor-pointer">
+      <span class="text-[15px] font-medium">Resume</span>
+      <span id="fname" class="block text-[13px] text-sub mt-1">Tap to choose a PDF or DOCX</span>
+      <input type="file" class="sr-only" accept=".pdf,.doc,.docx" onchange="document.getElementById('fname').textContent=this.files[0]?this.files[0].name:'Tap to choose a PDF or DOCX'">
+    </label>
+    <div class="glass rounded-3xl p-5 mt-3">
+      <label for="jd" class="text-[15px] font-medium">Job description</label>
+      <textarea id="jd" rows="5" class="mt-2 w-full rounded-2xl bg-white/60 border border-white/80 p-3 text-[14px] placeholder:text-mute" placeholder="Paste the role requirements here"></textarea>
+    </div>
+    <p class="text-[12px] text-mute mt-3">Your resume is used only to build your plan. You can delete it any time.</p>
+    <button class="mt-5 w-full h-[52px] rounded-full bg-vio hover:bg-vio2 text-white font-medium shadow-[0_8px_24px_rgba(124,108,240,.4)] active:scale-[.98] transition" onclick="startIntake()">Continue</button>
+    <button class="mt-2 w-full h-11 text-vio text-[14px]" onclick="startIntake()">Skip for now</button>
+  </section>
+
+  <!-- 3 INTAKE -->
+  <section id="s-intake" class="scr">
+    <div id="dots" class="flex gap-2 mt-6"></div>
+    <div class="glass rounded-3xl p-6 mt-5">
+      <p class="text-[11px] uppercase tracking-[.12em] text-mute" id="qn"></p>
+      <h2 class="font-serif text-[32px] leading-[1.12] mt-3" id="qt"></h2>
+      <div class="flex flex-wrap gap-2 mt-6" id="qo"></div>
+    </div>
+  </section>
+
+  <!-- 4 BUILDING -->
+  <section id="s-build" class="scr text-center">
+    <div class="flex flex-col items-center mt-16">
+      <div id="orbwrap" aria-label="Building your plan" role="img"><div class="cssorb" id="cssorb" style="display:none"></div></div>
+      <p id="stat" class="stat font-serif text-[28px] mt-8 leading-tight" aria-live="polite">Reading your resume</p>
+      <p class="text-[13px] text-mute mt-3">This takes about 20 seconds (demo: 7)</p>
+    </div>
+  </section>
+
+  <!-- 5 PLAN -->
+  <section id="s-plan" class="scr">
+    <div class="flex items-start justify-between mt-6">
+      <div>
+        <p class="text-[12px] text-sub">Backend developer, Acme</p>
+        <h2 class="font-serif text-[34px] leading-none mt-1">Your plan</h2>
+      </div>
+      <span id="cd" class="rounded-full bg-[#EDE9FF] text-[#5B4BD6] text-[12px] font-medium px-3 py-1.5">9h left</span>
+    </div>
+    <div class="h-1.5 rounded-full bg-white/70 mt-4"><div id="bar" class="h-1.5 rounded-full bg-vio transition-all" style="width:0%"></div></div>
+
+    <div class="glass rounded-2xl p-4 mt-4">
+      <p class="text-[13px] font-medium" id="fearT"></p>
+      <p class="text-[13px] text-sub mt-1" id="fearB"></p>
+    </div>
+
+    <!-- scope -->
+    <div id="t-scope" class="tab mt-5">
+      <p class="text-[13px] font-medium text-[#5B4BD6] mb-2">Must know</p>
+      <details class="glass rounded-2xl p-4 mb-2"><summary class="flex justify-between items-center"><span><span class="block text-[15px] font-medium">REST API design</span><span class="block text-[13px] text-sub">In the JD and used in your last project</span></span><span class="chev text-mute">›</span></summary><p class="text-[13px] text-sub mt-3">Resources, status codes, idempotency, pagination, versioning. Be ready to walk through one endpoint you built.</p></details>
+      <details class="glass rounded-2xl p-4 mb-5"><summary class="flex justify-between items-center"><span><span class="block text-[15px] font-medium">SQL joins and indexing</span><span class="block text-[13px] text-sub">Asked in most technical rounds</span></span><span class="chev text-mute">›</span></summary><p class="text-[13px] text-sub mt-3">Inner vs left join, when an index helps, reading a query plan at a basic level.</p></details>
+      <p class="text-[13px] font-medium text-[#B45309] mb-2">Likely probed</p>
+      <details class="glass rounded-2xl p-4 mb-5"><summary class="flex justify-between items-center"><span><span class="block text-[15px] font-medium">Docker basics</span><span class="block text-[13px] text-sub">In the JD, only listed on your resume</span></span><span class="chev text-mute">›</span></summary><p class="text-[13px] text-sub mt-3">Image vs container, Dockerfile layers, ports and volumes. Be honest about how deep you have used it.</p></details>
+      <p class="text-[13px] font-medium text-[#15803D] mb-2">Safe to skip</p>
+      <details class="glass rounded-2xl p-4"><summary class="flex justify-between items-center"><span><span class="block text-[15px] font-medium">Kubernetes internals</span><span class="block text-[13px] text-sub">Nice to have, rarely asked at this level</span></span><span class="chev text-mute">›</span></summary><p class="text-[13px] text-sub mt-3">Skip deep study. If asked, use the gap script in Questions.</p></details>
+    </div>
+
+    <!-- plan -->
+    <div id="t-plan" class="tab mt-5 hidden space-y-2"></div>
+
+    <!-- questions -->
+    <div id="t-q" class="tab mt-5 hidden">
+      <details class="glass rounded-2xl p-4 mb-2"><summary class="flex justify-between items-center"><span class="text-[15px] font-medium pr-3">Tell me about the API you built in your last project.</span><span class="chev text-mute">›</span></summary><p class="text-[13px] text-sub mt-3">Outline: the problem it solved, one design choice and why, one issue you fixed, and a number for the result.</p></details>
+      <details class="glass rounded-2xl p-4 mb-5"><summary class="flex justify-between items-center"><span class="text-[15px] font-medium pr-3">How did you handle slow queries?</span><span class="chev text-mute">›</span></summary><p class="text-[13px] text-sub mt-3">Outline: how you spotted it, what you measured, the change you made, the result. Use only what you actually did.</p></details>
+      <p class="text-[13px] font-medium mb-2">Honest-gap script: Kubernetes</p>
+      <div class="glass rounded-2xl p-4">
+        <p class="text-[13px] text-sub">What to learn: pods, deployments, services in one sentence each.</p>
+        <p id="gap" class="mt-3 rounded-xl bg-[#EDE9FF]/70 p-3 text-[14px] font-serif text-[17px] leading-snug">I haven’t used it in production, but I understand it schedules containers across machines, and here is how I would approach learning it on the job.</p>
+        <button class="mt-3 text-vio text-[13px] font-medium" onclick="copyGap(this)">Copy script</button>
+      </div>
+    </div>
+
+    <!-- mock -->
+    <div id="t-mock" class="tab mt-5 hidden">
+      <div class="flex justify-between items-center mb-3"><span class="rounded-full bg-[#EDE9FF] text-[#5B4BD6] text-[12px] font-medium px-3 py-1.5" id="timer">00:00</span><button class="text-vio text-[13px]" onclick="endMock()">End mock</button></div>
+      <div id="chat" class="space-y-2 mb-3"><div class="glass rounded-2xl rounded-bl-md p-3 text-[14px] max-w-[85%]">Let’s start. Walk me through a REST API you designed. What was the hardest decision?</div></div>
+      <div id="fb" class="hidden glass rounded-2xl p-4 mb-3"><p class="text-[15px] font-medium">Feedback</p><p class="text-[13px] text-sub mt-2">Strong: clear structure and a concrete example.</p><p class="text-[13px] text-sub mt-1">Fix: add one number to show the result.</p><p class="text-[13px] text-sub mt-1">Next: redo this answer in under 90 seconds.</p></div>
+      <div class="flex gap-2"><input id="msg" class="flex-1 h-12 rounded-full glass px-4 text-[14px] placeholder:text-mute" placeholder="Type your answer" onkeydown="if(event.key==='Enter')sendMsg()"><button class="h-12 px-5 rounded-full bg-vio text-white text-[14px] font-medium" onclick="sendMsg()">Send</button></div>
+    </div>
+
+    <button class="mt-10 mx-auto block text-[12px] text-[#DC2626]" onclick="if(confirm('Delete your resume and plan?'))location.reload()">Delete my data</button>
+  </section>
+</main>
+
+<nav id="nav" class="hidden fixed z-20 bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] px-5" style="padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))">
+  <div class="glass rounded-full h-16 flex items-center justify-around text-[12px] text-sub">
+    <button data-t="scope" class="tb px-3 py-2 text-vio font-medium">Scope</button>
+    <button data-t="plan" class="tb px-3 py-2">Plan</button>
+    <button data-t="q" class="tb px-3 py-2">Questions</button>
+    <button data-t="mock" class="tb px-3 py-2">Mock</button>
+  </div>
+</nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const S={when:'Tomorrow',hours:'3 to 12 hours',fear:'Freezing',i:0};
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function go(n){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));$('s-'+n).classList.add('on');$('nav').classList.toggle('hidden',n!=='plan');window.scrollTo(0,0)}
+function pickWhen(w){S.when=w;go('upload')}
+const Q=[
+ {q:'Which round is it?',o:['Screening','Technical','Managerial','HR']},
+ {q:'How many hours can you really spend?',o:['Under 3 hours','3 to 12 hours','1 to 3 days','4 to 14 days']},
+ {q:'What worries you most?',o:['Freezing','Rambling','Not knowing a stack','Salary or gap questions']}];
+function startIntake(){S.i=0;renderQ();go('intake')}
+function renderQ(){
+ const q=Q[S.i];$('qn').textContent='Question '+(S.i+1)+' of '+Q.length;$('qt').textContent=q.q;
+ $('dots').innerHTML=Q.map((_,k)=>'<span class="h-1.5 flex-1 rounded-full '+(k<=S.i?'bg-vio':'bg-white/70')+'"></span>').join('');
+ $('qo').innerHTML='';
+ q.o.forEach(t=>{const b=document.createElement('button');b.className='chip glass rounded-full h-10 px-4 text-[13px] font-medium';b.textContent=t;b.onclick=()=>{
+  if(S.i===1)S.hours=t;if(S.i===2)S.fear=t;b.classList.add('sel');
+  setTimeout(()=>{S.i++;S.i<Q.length?renderQ():startBuild()},180)};$('qo').appendChild(b)});
+}
+const FEAR={'Freezing':['Freezing is common.','Drill: pause for three seconds, restate the question, then answer in two parts.'],
+ 'Rambling':['Rambling is fixable.','Drill: answer in three sentences: context, what you did, the result.'],
+ 'Not knowing a stack':['Nobody knows every stack.','Script: say what you know, then how you would approach the rest.'],
+ 'Salary or gap questions':['These questions are predictable.','Script: state the facts in one line, then move to what you did since.']};
+const BLOCKS=[['Read your scope map','15 min'],['Learn the biggest gap: Kubernetes basics','45 min'],['Rehearse top 10 likely questions','60 min'],['Practice the gap scripts out loud','20 min'],['Run one text mock and review feedback','30 min']];
+function renderPlan(){
+ const f=FEAR[S.fear]||FEAR['Freezing'];$('fearT').textContent='Your worry: '+S.fear.toLowerCase()+'. '+f[0];$('fearB').textContent=f[1];
+ $('cd').textContent=S.when+' · '+S.hours;
+ $('t-plan').innerHTML=BLOCKS.map((b,k)=>'<label class="glass rounded-2xl p-4 flex items-center gap-3 cursor-pointer"><input type="checkbox" class="cb" onchange="tick(this)"><span class="flex-1 tt text-[15px]">'+b[0]+'</span><span class="rounded-full bg-[#EDE9FF] text-[#5B4BD6] text-[12px] px-2.5 py-1">'+b[1]+'</span></label>').join('');
+ $('bar').style.width='0%';
+}
+function tick(c){c.closest('label').classList.toggle('done',c.checked);const all=document.querySelectorAll('#t-plan .cb');const n=[...all].filter(x=>x.checked).length;$('bar').style.width=Math.round(n/all.length*100)+'%'}
+document.querySelectorAll('.tb').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('.tab').forEach(t=>t.classList.add('hidden'));$('t-'+b.dataset.t).classList.remove('hidden');
+ document.querySelectorAll('.tb').forEach(x=>x.className='tb px-3 py-2');b.className='tb px-3 py-2 text-vio font-medium';
+ if(b.dataset.t==='mock'&&!tm){tm=setInterval(()=>{ms++;$('timer').textContent=String(Math.floor(ms/60)).padStart(2,'0')+':'+String(ms%60).padStart(2,'0')},1000)}});
+let tm=null,ms=0,ri=0;
+const REPLY=['Good. How would you handle versioning if clients depend on it?','Can you give a number that shows the impact?','What would you do differently now?'];
+function sendMsg(){const v=$('msg').value.trim();if(!v)return;
+ $('chat').insertAdjacentHTML('beforeend','<div class="rounded-2xl rounded-br-md p-3 text-[14px] max-w-[85%] ml-auto bg-[#EDE9FF]"></div>');$('chat').lastChild.textContent=v;$('msg').value='';
+ setTimeout(()=>{$('chat').insertAdjacentHTML('beforeend','<div class="glass rounded-2xl rounded-bl-md p-3 text-[14px] max-w-[85%]">'+REPLY[ri++%REPLY.length]+'</div>')},600)}
+function endMock(){clearInterval(tm);tm=null;$('fb').classList.remove('hidden')}
+function copyGap(b){navigator.clipboard&&navigator.clipboard.writeText($('gap').textContent).catch(()=>{});b.textContent='Copied';setTimeout(()=>b.textContent='Copy script',1500)}
+
+/* ---- live 3D orb ---- */
+let orb=null,run=false;
+function initOrb(){
+ if(orb)return;
+ const w=$('orbwrap');
+ let ok=false;try{const c=document.createElement('canvas');ok=!!(c.getContext('webgl')||c.getContext('experimental-webgl'))&&window.THREE&&!reduce}catch(e){}
+ if(!ok){$('cssorb').style.display='block';return}
+ const r=new THREE.WebGLRenderer({alpha:true,antialias:true});r.setPixelRatio(Math.min(devicePixelRatio,2));r.setSize(220,220);r.setClearColor(0,0);w.appendChild(r.domElement);
+ const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(40,1,.1,10);cam.position.z=3.6;
+ const u={t:{value:0},amp:{value:.14}};
+ const m=new THREE.ShaderMaterial({uniforms:u,transparent:true,
+  vertexShader:'varying vec3 vN;varying vec3 vV;uniform float t;uniform float amp;void main(){vec3 p=position;float d=sin(p.x*2.+t)*sin(p.y*2.3+t*1.2)*sin(p.z*2.1+t*.8);p+=normal*d*amp;vN=normalize(normalMatrix*normal);vec4 mv=modelViewMatrix*vec4(p,1.);vV=normalize(-mv.xyz);gl_Position=projectionMatrix*mv;}',
+  fragmentShader:'varying vec3 vN;varying vec3 vV;uniform float t;void main(){vec3 n=normalize(vN);float f=pow(1.-max(dot(n,vV),0.),2.);vec3 a=vec3(.80,.74,1.),b=vec3(.60,.80,1.),c=vec3(1.,.74,.85),d=vec3(.65,.95,.9);float k=n.x*1.6+n.y*1.3+t*.5;vec3 col=mix(a,b,.5+.5*sin(k));col=mix(col,c,(.5+.5*sin(k*1.7+2.))*f*1.2);col=mix(col,d,f*.5*(.5+.5*sin(k*2.3)));col+=pow(max(dot(reflect(-vV,n),normalize(vec3(.5,.8,.6))),0.),24.)*.9;gl_FragColor=vec4(col,.6+.4*f);}'});
+ const mesh=new THREE.Mesh(new THREE.IcosahedronGeometry(1,24),m);sc.add(mesh);
+ let t0=performance.now();
+ function loop(now){requestAnimationFrame(loop);if(!run||document.hidden)return;
+  const s=(now-t0)/1000;u.t.value=s*1.2;mesh.rotation.y=s*.3;mesh.rotation.x=s*.12;mesh.scale.setScalar(1+Math.sin(s*1.6)*.03);r.render(sc,cam)}
+ requestAnimationFrame(loop);orb=r;
+}
+const MSG=['Reading your resume','Checking the job description','Ranking what matters','Building your time plan'];
+function startBuild(){
+ go('build');run=true;initOrb();renderPlan();let k=0;$('stat').textContent=MSG[0];
+ const id=setInterval(()=>{k++;if(k>=MSG.length){clearInterval(id);run=false;go('plan');return}
+  $('stat').style.opacity=0;setTimeout(()=>{$('stat').textContent=MSG[k];$('stat').style.opacity=1},300)},1700);
+}
+</script>
+</body>
+</html>
