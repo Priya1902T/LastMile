@@ -1,8 +1,8 @@
-# Interview Prep Agent
+# Scoped
 
-A triage coach for candidates with little time. It asks about your situation first (role, round, hours left, biggest fear), then tells you exactly what to prepare, what to skip, and how to answer honestly where you have gaps.
+*Know what to prepare. Skip the rest.*
 
-> Working name. Final product name is still open.
+Scoped is an interview prep agent: a triage coach for candidates with little time. It asks about your situation first (role, round, hours left, biggest fear), then tells you exactly what to prepare, what to skip, and how to answer honestly where you have gaps.
 
 ## Status
 
