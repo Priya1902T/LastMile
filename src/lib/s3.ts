@@ -2,9 +2,16 @@ import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } fro
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const bucket = process.env.S3_BUCKET;
-if (!bucket || !process.env.AWS_REGION) throw new Error("S3_BUCKET and AWS_REGION must be set");
+if (!bucket || !process.env.S3_REGION) throw new Error("S3_BUCKET and S3_REGION must be set");
 
-export const s3 = new S3Client({ region: process.env.AWS_REGION });
+// S3_* names (not AWS_*) because Vercel reserves the AWS_* variable names.
+export const s3 = new S3Client({
+  region: process.env.S3_REGION,
+  credentials: {
+    accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+  },
+});
 
 // Resumes are personal data: always server-side encrypted.
 export async function uploadResume(key: string, body: Buffer, contentType: string) {
