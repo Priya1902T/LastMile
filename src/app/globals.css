@@ -1,26 +1,61 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-serif: var(--font-instrument), Georgia, serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  --color-ink: #1e1b3a;
+  --color-sub: #6b6890;
+  --color-mute: #9a98b8;
+  --color-vio: #7c6cf0;
+  --color-vio2: #6a59e0;
+  --color-vio-soft: #ede9ff;
+  --color-vio-deep: #5b4bd6;
+  --color-amber: #b45309;
+  --color-leaf: #15803d;
 }
 
+html, body { min-height: 100%; }
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--color-ink);
+  background: linear-gradient(180deg, #f4f1ff 0%, #e6e4ff 55%, #d9e4ff 100%);
+  background-attachment: fixed;
+}
+
+@utility glass {
+  background: rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 10px 40px rgba(124, 108, 240, 0.15);
+}
+
+.blob {
+  position: fixed; border-radius: 50%; filter: blur(70px); z-index: 0; pointer-events: none;
+  animation: drift 20s ease-in-out infinite alternate;
+}
+@keyframes drift { to { transform: translate(30px, 40px); } }
+
+.fade-in { animation: fadein 0.25s ease-out; }
+@keyframes fadein { from { opacity: 0; transform: translateY(12px); } }
+
+.orb {
+  width: 180px; height: 180px; border-radius: 50%;
+  background: conic-gradient(from 0deg, #cfc4ff, #bfd9ff, #ffc9dc, #bdf2e4, #cfc4ff);
+  filter: blur(1px); animation: spin 8s linear infinite;
+  box-shadow: 0 30px 60px rgba(124, 108, 240, 0.35);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+details > summary { list-style: none; cursor: pointer; }
+details > summary::-webkit-details-marker { display: none; }
+details[open] .chev { transform: rotate(90deg); }
+.chev { transition: transform 0.2s; }
+
+:focus-visible { outline: 2px solid var(--color-vio); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .blob, .fade-in, .orb { animation: none; }
 }

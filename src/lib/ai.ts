@@ -5,13 +5,20 @@ import { z } from "zod";
 const BASE_URL = process.env.NVIDIA_BASE_URL ?? "https://integrate.api.nvidia.com/v1";
 const API_KEY = process.env.NVIDIA_API_KEY;
 
-// Primary = best quality; fallback = faster, used if the primary fails or times out.
-export const AI_MODEL = process.env.AI_MODEL ?? "nvidia/nemotron-3-ultra-550b-a55b";
-export const AI_FALLBACK_MODEL = process.env.AI_FALLBACK_MODEL ?? "nvidia/nemotron-3.5-lightning-30b-a3b";
+// Primary = fast (~15s for a full triage); fallback = larger model, used if the primary fails.
+export const AI_MODEL = process.env.AI_MODEL ?? "nvidia/nemotron-3.5-lightning-30b-a3b";
+export const AI_FALLBACK_MODEL = process.env.AI_FALLBACK_MODEL ?? "nvidia/nemotron-3-ultra-550b-a55b";
 
 export type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
 
-type ChatOptions = { json?: boolean; maxTokens?: number; temperature?: number; timeoutMs?: number };
+type ChatOptions = {
+  json?: boolean;
+  maxTokens?: number;
+  temperature?: number;
+  timeoutMs?: number; // primary model
+  fallbackTimeoutMs?: number; // fallback model (keep primary + fallback under the 60s serverless limit)
+  model?: string;
+};
 
 async function callModel(model: string, messages: ChatMessage[], o: ChatOptions): Promise<string> {
   if (!API_KEY) throw new Error("NVIDIA_API_KEY is not set");
@@ -24,6 +31,8 @@ async function callModel(model: string, messages: ChatMessage[], o: ChatOptions)
       max_tokens: o.maxTokens ?? 2000,
       temperature: o.temperature ?? 0.3,
       ...(o.json ? { response_format: { type: "json_object" } } : {}),
+      // Nemotron "thinking" mode burns tokens and time before answering; our prompts don't need it.
+      chat_template_kwargs: { enable_thinking: false },
     }),
     signal: AbortSignal.timeout(o.timeoutMs ?? 60_000),
   });
@@ -37,28 +46,35 @@ async function callModel(model: string, messages: ChatMessage[], o: ChatOptions)
 /** Plain text chat, with automatic fallback to the faster model. */
 export async function chat(messages: ChatMessage[], o: ChatOptions = {}): Promise<string> {
   try {
-    return await callModel(AI_MODEL, messages, o);
+    return await callModel(o.model ?? AI_MODEL, messages, o);
   } catch (err) {
     console.warn(`[ai] primary model failed, using fallback: ${(err as Error).message}`);
-    return callModel(AI_FALLBACK_MODEL, messages, o);
+    return callModel(AI_FALLBACK_MODEL, messages, { ...o, timeoutMs: o.fallbackTimeoutMs ?? o.timeoutMs });
   }
 }
 
-/** Ask for JSON and validate it against a Zod schema. */
-export async function chatJson<T>(schema: z.ZodType<T>, messages: ChatMessage[], o: ChatOptions = {}): Promise<T> {
-  const raw = await chat(messages, { ...o, json: true });
+function parseJson<T>(schema: z.ZodType<T>, raw: string): T {
   const jsonText = raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1);
   return schema.parse(JSON.parse(jsonText));
 }
 
-// ---- Scoped-specific schemas ----
-
-export const scopeMapSchema = z.object({
-  mustKnow: z.array(z.string()).min(1),
-  likelyProbed: z.array(z.string()),
-  safeToSkip: z.array(z.string()),
-});
-export type ScopeMap = z.infer<typeof scopeMapSchema>;
+/** Ask for JSON and validate it against a Zod schema. Retries once, telling the model what was wrong. */
+export async function chatJson<T>(schema: z.ZodType<T>, messages: ChatMessage[], o: ChatOptions = {}): Promise<T> {
+  const raw = await chat(messages, { ...o, json: true });
+  try {
+    return parseJson(schema, raw);
+  } catch (err) {
+    const retry = await chat(
+      [
+        ...messages,
+        { role: "assistant", content: raw },
+        { role: "user", content: `That JSON was invalid (${(err as Error).message.slice(0, 300)}). Reply again with valid JSON only, matching the requested shape exactly.` },
+      ],
+      { ...o, json: true },
+    );
+    return parseJson(schema, retry);
+  }
+}
 
 export const SYSTEM_PROMPT =
   "You are Scoped, an interview triage coach for candidates with little time. " +
