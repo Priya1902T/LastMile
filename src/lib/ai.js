@@ -1,26 +1,25 @@
-// Swappable AI layer. Any OpenAI-compatible provider works: change the env vars
-// (base URL, key, models) to switch from the NVIDIA free tier to a production provider.
-import { z } from "zod";
-
 const BASE_URL = process.env.NVIDIA_BASE_URL ?? "https://integrate.api.nvidia.com/v1";
+
 const API_KEY = process.env.NVIDIA_API_KEY;
 
 // Primary = fast (~15s for a full triage); fallback = larger model, used if the primary fails.
 export const AI_MODEL = process.env.AI_MODEL ?? "nvidia/nemotron-3.5-lightning-30b-a3b";
+
 export const AI_FALLBACK_MODEL = process.env.AI_FALLBACK_MODEL ?? "nvidia/nemotron-3-ultra-550b-a55b";
 
-export type ChatMessage = { role: "system" | "user" | "assistant"; content: string };
+/**
+ * @typedef {{ role: "system" | "user" | "assistant", content: string }} ChatMessage
+ * @typedef {object} ChatOptions
+ * @property {boolean} [json] ask for a JSON object
+ * @property {number} [maxTokens]
+ * @property {number} [temperature]
+ * @property {number} [timeoutMs] primary model timeout
+ * @property {number} [fallbackTimeoutMs] fallback model timeout (keep both under the 60s serverless limit)
+ * @property {string} [model] override the primary model
+ */
 
-type ChatOptions = {
-  json?: boolean;
-  maxTokens?: number;
-  temperature?: number;
-  timeoutMs?: number; // primary model
-  fallbackTimeoutMs?: number; // fallback model (keep primary + fallback under the 60s serverless limit)
-  model?: string;
-};
-
-async function callModel(model: string, messages: ChatMessage[], o: ChatOptions): Promise<string> {
+/** @param {string} model @param {ChatMessage[]} messages @param {ChatOptions} o */
+async function callModel(model, messages, o) {
   if (!API_KEY) throw new Error("NVIDIA_API_KEY is not set");
   const res = await fetch(`${BASE_URL}/chat/completions`, {
     method: "POST",
@@ -38,28 +37,28 @@ async function callModel(model: string, messages: ChatMessage[], o: ChatOptions)
   });
   if (!res.ok) throw new Error(`AI ${model} failed: ${res.status} ${(await res.text()).slice(0, 200)}`);
   const data = await res.json();
-  const content: string | undefined = data.choices?.[0]?.message?.content;
+  const content = data.choices?.[0]?.message?.content;
   if (!content) throw new Error(`AI ${model} returned no content`);
   return content;
 }
 
-/** Plain text chat, with automatic fallback to the faster model. */
-export async function chat(messages: ChatMessage[], o: ChatOptions = {}): Promise<string> {
+/** Plain text chat, with automatic fallback to the larger model. */
+export async function chat(messages, o = {}) {
   try {
     return await callModel(o.model ?? AI_MODEL, messages, o);
   } catch (err) {
-    console.warn(`[ai] primary model failed, using fallback: ${(err as Error).message}`);
+    console.warn(`[ai] primary model failed, using fallback: ${err.message}`);
     return callModel(AI_FALLBACK_MODEL, messages, { ...o, timeoutMs: o.fallbackTimeoutMs ?? o.timeoutMs });
   }
 }
 
-function parseJson<T>(schema: z.ZodType<T>, raw: string): T {
+function parseJson(schema, raw) {
   const jsonText = raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1);
   return schema.parse(JSON.parse(jsonText));
 }
 
 /** Ask for JSON and validate it against a Zod schema. Retries once, telling the model what was wrong. */
-export async function chatJson<T>(schema: z.ZodType<T>, messages: ChatMessage[], o: ChatOptions = {}): Promise<T> {
+export async function chatJson(schema, messages, o = {}) {
   const raw = await chat(messages, { ...o, json: true });
   try {
     return parseJson(schema, raw);
@@ -68,7 +67,10 @@ export async function chatJson<T>(schema: z.ZodType<T>, messages: ChatMessage[],
       [
         ...messages,
         { role: "assistant", content: raw },
-        { role: "user", content: `That JSON was invalid (${(err as Error).message.slice(0, 300)}). Reply again with valid JSON only, matching the requested shape exactly.` },
+        {
+          role: "user",
+          content: `That JSON was invalid (${err.message.slice(0, 300)}). Reply again with valid JSON only, matching the requested shape exactly.`,
+        },
       ],
       { ...o, json: true },
     );

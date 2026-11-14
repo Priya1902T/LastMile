@@ -8,24 +8,30 @@ if (!bucket || !process.env.S3_REGION) throw new Error("S3_BUCKET and S3_REGION 
 export const s3 = new S3Client({
   region: process.env.S3_REGION,
   credentials: {
-    accessKeyId: process.env.S3_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+    accessKeyId: process.env.S3_ACCESS_KEY_ID,
+    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
   },
 });
 
 // Resumes are personal data: always server-side encrypted.
-export async function uploadResume(key: string, body: Buffer, contentType: string) {
-  await s3.send(new PutObjectCommand({
-    Bucket: bucket, Key: key, Body: body, ContentType: contentType, ServerSideEncryption: "AES256",
-  }));
+export async function uploadResume(key, body, contentType) {
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      Body: body,
+      ContentType: contentType,
+      ServerSideEncryption: "AES256",
+    }),
+  );
   return key;
 }
 
 // Short-lived link to read a private file (default 5 minutes).
-export function getResumeUrl(key: string, expiresIn = 300) {
+export function getResumeUrl(key, expiresIn = 300) {
   return getSignedUrl(s3, new GetObjectCommand({ Bucket: bucket, Key: key }), { expiresIn });
 }
 
-export async function deleteResume(key: string) {
+export async function deleteResume(key) {
   await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
 }

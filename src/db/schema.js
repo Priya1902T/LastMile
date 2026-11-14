@@ -1,10 +1,12 @@
+/**
+ * Shapes stored in the jsonb columns below:
+ * @typedef {{ topic: string, why: string, howToPrep: string }} ScopeItem
+ * @typedef {{ minutes: number, task: string }} PlanBlock
+ * @typedef {{ question: string, outline: string[] }} ProbeQuestion
+ * @typedef {{ skill: string, learnFast: string, script: string }} GapScript
+ * @typedef {{ title: string, drill: string }} FearTip
+ */
 import { pgTable, uuid, text, integer, jsonb, timestamp } from "drizzle-orm/pg-core";
-
-export type ScopeItem = { topic: string; why: string; howToPrep: string };
-export type PlanBlock = { minutes: number; task: string };
-export type ProbeQuestion = { question: string; outline: string[] };
-export type GapScript = { skill: string; learnFast: string; script: string };
-export type FearTip = { title: string; drill: string };
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -13,6 +15,7 @@ export const users = pgTable("users", {
 });
 
 // One prep session = one upcoming interview the candidate is triaging.
+
 // userId is optional until sign-in exists; anonymous sessions are reached by their id.
 export const prepSessions = pgTable("prep_sessions", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -31,20 +34,24 @@ export const prepSessions = pgTable("prep_sessions", {
 // Scope map: must know / likely probed / safe to skip.
 export const scopeMaps = pgTable("scope_maps", {
   id: uuid("id").primaryKey().defaultRandom(),
-  sessionId: uuid("session_id").notNull().references(() => prepSessions.id, { onDelete: "cascade" }),
-  mustKnow: jsonb("must_know").$type<ScopeItem[]>().notNull(),
-  likelyProbed: jsonb("likely_probed").$type<ScopeItem[]>().notNull(),
-  safeToSkip: jsonb("safe_to_skip").$type<ScopeItem[]>().notNull(),
-  probeQuestions: jsonb("probe_questions").$type<ProbeQuestion[]>().notNull().default([]),
-  gapScripts: jsonb("gap_scripts").$type<GapScript[]>().notNull().default([]),
-  fearTip: jsonb("fear_tip").$type<FearTip>(),
+  sessionId: uuid("session_id")
+    .notNull()
+    .references(() => prepSessions.id, { onDelete: "cascade" }),
+  mustKnow: jsonb("must_know").$type().notNull(),
+  likelyProbed: jsonb("likely_probed").$type().notNull(),
+  safeToSkip: jsonb("safe_to_skip").$type().notNull(),
+  probeQuestions: jsonb("probe_questions").$type().notNull().default([]),
+  gapScripts: jsonb("gap_scripts").$type().notNull().default([]),
+  fearTip: jsonb("fear_tip").$type(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 // Time-boxed plan built backwards from hours left.
 export const plans = pgTable("plans", {
   id: uuid("id").primaryKey().defaultRandom(),
-  sessionId: uuid("session_id").notNull().references(() => prepSessions.id, { onDelete: "cascade" }),
-  blocks: jsonb("blocks").$type<PlanBlock[]>().notNull(),
+  sessionId: uuid("session_id")
+    .notNull()
+    .references(() => prepSessions.id, { onDelete: "cascade" }),
+  blocks: jsonb("blocks").$type().notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

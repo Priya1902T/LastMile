@@ -13,7 +13,7 @@
     "db:check": "node scripts/db-check.mjs",
     "s3:check": "node scripts/s3-check.mjs",
     "ai:check": "node scripts/ai-check.mjs",
-    "triage:check": "tsx scripts/triage-check.mts"
+    "triage:check": "tsx scripts/triage-check.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1168.0",
@@ -29,15 +29,12 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
     "dotenv": "^18.0.10",
     "drizzle-kit": "^0.31.11",
     "eslint": "^9",
     "eslint-config-next": "15.5.29",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4.23.15"
   },
   "description": "Scoped: know what to prepare. Skip the rest. A triage coach for last-minute interview prep."
 }
