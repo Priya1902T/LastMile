@@ -13,12 +13,21 @@
   --color-ink2: #1f1f1f;
   --color-sub: #5c5a57;
   --color-mute: #8f8b85;
-  --color-lime: #d4f53c;
+  --color-lime: #d7ff1e;
   --color-lime-soft: #eefbb8;
   --color-lime-deep: #6b8a00;
-  --color-orange: #ff6b2c;
+  --color-orange: #ff7a1f;
   --color-orange-soft: #ffe4d6;
   --color-line: #e2ddd5;
+  /* marketing site tokens */
+  --color-paper: #f7f3ee;
+  --color-night: #181a19;
+  --color-coal: #111312;
+  --color-glow: #c8f51a;
+  --color-peach: #ffe3d1;
+  --color-mint: #e6f8b8;
+  --color-fog: #e8e6e3;
+  --color-muted: #3a3d3b;
   /* legacy aliases used by app screens */
   --color-vio: #141414;
   --color-vio2: #000000;
